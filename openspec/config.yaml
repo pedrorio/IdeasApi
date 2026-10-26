@@ -6,7 +6,7 @@ context: |
   Narrative current-state notes are in openspec/project.md. Read that before editing a change.
   Land the changes in this order: upgrade-stack, add-migrations, votes-table, auth-guard, e2e-tests.
   upgrade-stack must not change request or response behavior.
-  ormconfig.js currently sets synchronize and dropSchema to true. There is no migration yet.
+  ormconfig.js sets synchronize and dropSchema to false and runs migrations on startup. The baseline migration lives in api/src/migration. A schema change needs a new file there.
   Do not implement a change until that change is the one being applied.
 
 rules:
