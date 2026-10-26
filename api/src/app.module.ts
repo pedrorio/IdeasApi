@@ -19,6 +19,60 @@ import { DateScalar } from "./shared/date.scalar";
 const [connection] = require("../ormconfig") as Array<TypeOrmModuleOptions & { cli?: unknown }>;
 const { cli: _typeOrmCli, ...typeOrmOptions } = connection;
 
+function formatGraphQLError(formattedError: GraphQLFormattedError): GraphQLFormattedError {
+  const extensions = formattedError.extensions;
+  if (!extensions) {
+    return formattedError;
+  }
+  if (process.env.NODE_ENV === "development") {
+    return copyDevelopmentStack(formattedError, extensions);
+  }
+  return stripErrorStack(formattedError, extensions);
+}
+
+function copyDevelopmentStack(
+  formattedError: GraphQLFormattedError,
+  extensions: Record<string, unknown>
+): GraphQLFormattedError {
+  const stacktrace = extensions.stacktrace;
+  if (!Array.isArray(stacktrace)) {
+    return formattedError;
+  }
+  const rest: Record<string, unknown> = {};
+  for (const key of Object.keys(extensions)) {
+    if (key !== "stacktrace") {
+      rest[key] = extensions[key];
+    }
+  }
+  return {
+    ...formattedError,
+    extensions: {
+      ...rest,
+      exception: { stacktrace }
+    }
+  };
+}
+
+function stripErrorStack(
+  formattedError: GraphQLFormattedError,
+  extensions: Record<string, unknown>
+): GraphQLFormattedError {
+  if (!Object.prototype.hasOwnProperty.call(extensions, "stacktrace")
+    && !Object.prototype.hasOwnProperty.call(extensions, "exception")) {
+    return formattedError;
+  }
+  const rest: Record<string, unknown> = {};
+  for (const key of Object.keys(extensions)) {
+    if (key !== "stacktrace" && key !== "exception") {
+      rest[key] = extensions[key];
+    }
+  }
+  return {
+    ...formattedError,
+    extensions: rest
+  };
+}
+
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeOrmOptions),
@@ -30,21 +84,8 @@ const { cli: _typeOrmCli, ...typeOrmOptions } = connection;
       csrfPrevention: false,
       // Apollo Server 4 puts stack frames on extensions.stacktrace.
       // Apollo Server 2 nested them under extensions.exception.stacktrace.
-      formatError: (formattedError: GraphQLFormattedError): GraphQLFormattedError => {
-        const extensions = formattedError.extensions;
-        const stacktrace = extensions && extensions.stacktrace;
-        if (!extensions || !Array.isArray(stacktrace)) {
-          return formattedError;
-        }
-        const { stacktrace: _ignored, ...rest } = extensions;
-        return {
-          ...formattedError,
-          extensions: {
-            ...rest,
-            exception: { stacktrace }
-          }
-        };
-      }
+      // Outside development those frames are omitted.
+      formatError: formatGraphQLError
     }),
     IdeaModule,
     UserModule,

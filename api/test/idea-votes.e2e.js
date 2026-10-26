@@ -19,7 +19,9 @@ process.env.POSTGRES_PORT = process.env.POSTGRES_PORT || "5432";
 process.env.POSTGRES_USER = process.env.POSTGRES_USER || "ideas";
 process.env.POSTGRES_PASSWORD = process.env.POSTGRES_PASSWORD || "ideas";
 process.env.POSTGRES_DB = database;
-process.env.JWT_SECRET = process.env.JWT_SECRET || "votes-e2e";
+if (!process.env.JWT_SECRET || Buffer.byteLength(process.env.JWT_SECRET) < 32) {
+  process.env.JWT_SECRET = "votes-e2e-secret-padding-000032b";
+}
 process.env.SERVER_PORT = process.env.SERVER_PORT || "18772";
 
 const [connection] = require("../ormconfig");

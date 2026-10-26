@@ -5,12 +5,12 @@ import {
   HttpException,
   HttpStatus
 } from "@nestjs/common";
-import { validate } from "class-validator";
+import { getMetadataStorage, validate, ValidationError } from "class-validator";
 import { plainToClass } from "class-transformer";
 
 @Injectable()
-export class ValidatorPipe implements PipeTransform<any> {
-  async transform(value: any, metadata: ArgumentMetadata) {
+export class ValidatorPipe implements PipeTransform<unknown> {
+  async transform(value: unknown, metadata: ArgumentMetadata) {
 
     if (value instanceof Object && this.isEmpty(value)) {
       throw new HttpException(
@@ -23,30 +23,36 @@ export class ValidatorPipe implements PipeTransform<any> {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
+    if (getMetadataStorage().getTargetValidationMetadatas(metatype, "", false, false).length === 0) {
+      return value;
+    }
     const object = plainToClass(metatype, value);
-    const errors = await validate(object);
+    const errors = await validate(object, {
+      whitelist: true,
+      forbidNonWhitelisted: true
+    });
     if (errors.length > 0) {
       throw new HttpException(
         `Validation failed: ${this.formatErrors(errors)}`,
         HttpStatus.BAD_REQUEST
       );
     }
-    return value;
+    return object;
   }
 
-  private toValidate(metatype): boolean {
-    const types = [String, Boolean, Number, Array, Object];
+  private toValidate(metatype: Function): boolean {
+    const types: Function[] = [String, Boolean, Number, Array, Object];
     return !types.find((type) => metatype === type);
   }
 
-  private formatErrors(errors: any[]) {
+  private formatErrors(errors: ValidationError[]) {
     return errors.map(error => {
-        return Object.values(error.constraints);
-      }
-    ).join(" ,");
+      const constraints = error.constraints ?? {};
+      return Object.values(constraints);
+    }).join(" ,");
   }
 
-  private isEmpty(value: any) {
+  private isEmpty(value: object) {
     return Object.keys(value).length === 0;
   }
 }

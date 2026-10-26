@@ -70,10 +70,10 @@ export class UserEntity {
 
   get token() {
     const { id, username } = this;
-    return jwt.sign({
-        id, username
-      },
+    return jwt.sign(
+      { id, username },
       jwtSecret,
-      { expiresIn: "7d" });
+      { algorithm: "HS256", expiresIn: "7d" }
+    );
   }
 }

@@ -6,7 +6,7 @@ The Ideas API is a NestJS service in `api/`. NestJS modules serve REST and schem
 
 Use Node 22, Yarn 1, and Postgres 18. Startup runs pending TypeORM migrations and does not drop the schema.
 
-From `api/`, set `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `JWT_SECRET`. Then run:
+From `api/`, set `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `JWT_SECRET`. The process exits at startup when `JWT_SECRET` is missing or shorter than 32 bytes. Then run:
 
 ```bash
 yarn install --frozen-lockfile

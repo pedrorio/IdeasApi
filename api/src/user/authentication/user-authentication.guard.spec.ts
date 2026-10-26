@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 import { UserAuthenticationGuard } from "./user-authentication.guard";
 
 describe("UserAuthenticationGuard", () => {
-  const secret = "guard-spec-secret";
+  const secret = "guard-spec-secret-padding-00032b";
   const password = "stored-password-hash";
   const bearer = "client-bearer-token";
   let logs: string[];
