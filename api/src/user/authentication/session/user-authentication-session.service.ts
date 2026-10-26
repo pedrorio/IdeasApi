@@ -35,5 +35,5 @@ export class UserAuthenticationSessionService {
 
     return UserAuthenticationRO.fromUser(user);
   }
-  
+
 }

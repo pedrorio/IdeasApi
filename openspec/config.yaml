@@ -1,0 +1,31 @@
+schema: spec-driven
+
+context: |
+  Ideas API lives in api/ (NestJS, TypeORM, schema-first GraphQL, REST, Swagger).
+  Postgres and Redis are defined in docker-compose.yml. Application code does not connect to Redis.
+  Narrative current-state notes are in openspec/project.md. Read that before editing a change.
+  Land the changes in this order: upgrade-stack, add-migrations, votes-table, auth-guard, e2e-tests.
+  upgrade-stack must not change request or response behavior.
+  ormconfig.js currently sets synchronize and dropSchema to true. There is no migration yet.
+  Do not implement a change until that change is the one being applied.
+
+rules:
+  proposal:
+    - Say whether HTTP or GraphQL behavior changes.
+    - Keep the change inside its own name. Do not pull work from a later change.
+  specs:
+    - Write requirements that a test can fail. Use SHALL or MUST.
+    - Keep each requirement description under 500 characters.
+    - Put examples and edge cases in scenarios.
+  tasks:
+    - Every checkbox says how to verify it.
+    - Include the tests that belong to that change. Do not leave them for a later change.
+
+operations:
+  apply:
+    guidance:
+      - Preserve current behavior except where this change's specs require a difference.
+      - Do not upgrade dependencies inside a change other than upgrade-stack.
+  archive:
+    guidance:
+      - Archive only after the specs' scenarios have an automated test or an explained manual check.

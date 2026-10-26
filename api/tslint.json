@@ -4,9 +4,16 @@
     "tslint:recommended"
   ],
   "jsRules": {
-    "no-unused-expression": true
+    "no-unused-expression": [
+      true,
+      "allow-fast-null-checks"
+    ]
   },
   "rules": {
+    "no-unused-expression": [
+      true,
+      "allow-fast-null-checks"
+    ],
     "quotemark": [
       true,
       "double"
