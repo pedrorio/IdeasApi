@@ -1,11 +1,10 @@
-import { Resolver, Mutation, Args, Context } from "@nestjs/graphql";
+import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { UseGuards } from "@nestjs/common";
 import { UserDTO } from "../../user.dto";
 import { UserAuthenticationSessionService } from "./user-authentication-session.service";
-import { Query } from "@nestjs/common";
 import { UserAuthenticationRO } from "../user-authentication.ro";
+import { UserAuthenticationGuard } from "../user-authentication.guard";
 import { UserService } from "../../user.service";
-
-const FindMeQuery = (Query as () => MethodDecorator)();
 
 @Resolver("User")
 export class UserAuthenticationSessionResolver {
@@ -20,11 +19,12 @@ export class UserAuthenticationSessionResolver {
     return this.userAuthenticationSessionService.createSession(data);
   }
 
-  @FindMeQuery
+  @Query()
+  @UseGuards(UserAuthenticationGuard)
   findMe(
-    @Context("user") { username }: UserAuthenticationRO
+    @Context("user") user: UserAuthenticationRO
   ) {
-    return this.userService.findUser(username);
+    return this.userService.findUser(user.username);
   }
 
 }

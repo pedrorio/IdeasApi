@@ -24,7 +24,7 @@ The application code is in `api/`. Nothing in this baseline change is allowed to
 `AppModule` imports TypeORM, GraphQL, `IdeaModule`, `UserModule`, and `CommentModule`.
 
 - **Users** (`api/src/user`): `UserEntity` (`user` table) with username, password hash, ideas, bookmarks, comments. `GET /users` and `GET /users/:username` page with `take: 25` and `skip`.
-- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser`, `loginUser`, `findMe`. `UserAuthenticationGuard` checks `Authorization: Bearer`. A missing header or a bad signature is 403. An expired token or a token whose user row is gone is 401. The guard does not log the user or the bearer token.
+- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser`, `loginUser`, and `findMe`. `findMe` uses `UserAuthenticationGuard`. A missing header or a bad signature is 403. An expired token or a token whose user row is gone is 401. The guard does not log the user or the bearer token.
 - **Ideas** (`api/src/idea`): create, read, update, delete. Reads load `author` and `comments` and a numeric `score`. `GET /ideas` and `GET /ideas/newest` return `{ items, nextCursor }`, ordered by `created` descending then `id` descending. The default limit is 25 and the maximum is 100.
 - **Votes** (`api/src/idea/vote`): `PUT /ideas/:id/vote` with `{ value: 1 | -1 | 0 }` and GraphQL `setVote`. Storage is the `votes` table, one row per user and idea. The write response is `{ score, viewerVote }`. Idea reads do not include `viewerVote`.
 - **Bookmarks** (`api/src/idea/bookmark`): `POST /ideas/:id/bookmark` and `DELETE /ideas/:id/bookmark`. Storage is a `ManyToMany` on `UserEntity`.
@@ -45,9 +45,9 @@ yarn test
 yarn start          # ts-node src/main.ts
 ```
 
-Docker Compose from the repo root expects environment variables listed in `docker-compose.yml` (`POSTGRES_*`, `JWT_SECRET`, `SESSION_SECRET`, hosts and ports). `ormconfig.js` reads the Postgres variables. `JWT_SECRET` has no default in `api/src/app.constants.ts`.
+Docker Compose from the repo root expects environment variables listed in `docker-compose.yml` (`POSTGRES_*`, `JWT_SECRET`, `SESSION_SECRET`, hosts and ports). `ormconfig.js` reads the Postgres variables. `JWT_SECRET` has no default in `api/src/app.constants.ts`. The process exits before it listens when `JWT_SECRET` is missing or shorter than 32 UTF-8 bytes.
 
-`yarn test:e2e` creates throwaway databases on the Postgres given by `POSTGRES_*` and runs `test/schema-migration.e2e.js`, `test/idea-votes.e2e.js`, and `test/auth-guard.e2e.js`. It fails if that Postgres is unreachable. It does not request `GET /`. `yarn test:migration` registers a user, restarts the app, and reads that user back. `yarn test:votes` runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn test:auth` checks login, a live token, a missing header, a bad signature, an expired token, and a deleted user on REST and GraphQL. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
+`yarn test:e2e` creates throwaway databases on the Postgres given by `POSTGRES_*` and runs `test/schema-migration.e2e.js`, `test/idea-votes.e2e.js`, `test/auth-guard.e2e.js`, and `test/harden-auth.e2e.js`. It fails if that Postgres is unreachable. It does not request `GET /`. `yarn test:migration` registers a user, restarts the app, and reads that user back. `yarn test:votes` runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn test:auth` checks login, a live token, a missing header, a bad signature, an expired token, and a deleted user on REST and GraphQL. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
 
 ## Data model
 
@@ -68,9 +68,8 @@ Checked against the code, not only against the original notes.
 
 1. **Redis is unused.** `redisConfig` in `app.constants.ts` is commented out. Compose does not start Redis, and the API container does not wait for it. The commented config and the unused session prefix constants are still in `app.constants.ts`.
 2. **Bookmark and unbookmark are unsafe.** `bookmarkIdea` calls `user.bookmarks.filter` without loading the `bookmarks` relation, so a normal `findOne` result throws. `unbookmarkIdea` filters with `===` against the idea, which **keeps** the matching bookmark and drops the others.
-3. **Authorisation compares `JSON.stringify` of the user and the author.** `IdeaPolicy.authorize` does not compare ids.
-4. **Image tags are major pins, not digests.** `postgres:18`, `node:22-alpine`, and `nginx:1.30`. A later digest pin is out of scope.
-5. **The other unit specs still only call `toBeDefined`.** Vote behavior is covered by `yarn test:votes`. The guard's log and status codes are covered by `user-authentication.guard.spec.ts` and `yarn test:auth`.
+3. **Image tags are major pins, not digests.** `postgres:18`, `node:22-alpine`, and `nginx:1.30`. A later digest pin is out of scope.
+4. **Some unit specs still only call `toBeDefined`.** Vote behavior is covered by `yarn test:votes`. The guard's log and status codes are covered by `user-authentication.guard.spec.ts` and `yarn test:auth`. Idea and comment ownership is covered by `idea.policy.spec.ts`, `comment.policy.spec.ts`, and `yarn test:e2e`.
 
 ## Planned changes
 
@@ -81,6 +80,7 @@ Proposals only, in this order:
 3. `votes-table` — done in this tree: `votes(user_id, idea_id, value)`, `PUT /ideas/:id/vote`, GraphQL `setVote`, and cursor pages. Idea reads do not include `viewerVote`.
 4. `auth-guard` — done in this tree: `401` when the user row is missing or the token is expired, `403` for a missing header or a bad signature, and the guard does not log a bearer token.
 5. `e2e-tests` — done in this tree: `yarn test:e2e` runs the migration, vote, and auth checks on a throwaway database. The unit CI job does not start Postgres.
+6. `harden-auth-and-input` — done in this tree: unknown JSON fields are rejected, register and idea writes cannot set `id` or `author`, a short `JWT_SECRET` refuses to boot, tokens are HS256, GraphQL stack traces are omitted outside development, `findMe` requires the guard, and ownership compares ids.
 
 ## CI baseline
 

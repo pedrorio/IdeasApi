@@ -8,7 +8,19 @@ import * as rateLimit from "express-rate-limit";
 import { AppModule } from "./app.module";
 import { serverPort } from "./app.constants";
 
+const minimumJwtSecretBytes = 32;
+
+function assertJwtSecret(): void {
+  const secret = process.env.JWT_SECRET;
+  const bytes = typeof secret === "string" ? Buffer.byteLength(secret, "utf8") : 0;
+  if (bytes < minimumJwtSecretBytes) {
+    Logger.error("JWT_SECRET must be at least 32 UTF-8 bytes", undefined, "Bootstrap");
+    process.exit(1);
+  }
+}
+
 async function bootstrap() {
+  assertJwtSecret();
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
