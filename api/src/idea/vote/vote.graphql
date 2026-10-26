@@ -1,0 +1,8 @@
+type VoteResult {
+    score: Int!
+    viewerVote: Int!
+}
+
+type Mutation {
+    setVote(ideaId: ID!, value: Int!): VoteResult!
+}

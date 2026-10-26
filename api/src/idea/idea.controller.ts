@@ -1,4 +1,6 @@
-import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, Query, UseGuards, UsePipes } from "@nestjs/common";
+import {
+  Body, Controller, Delete, Get, Logger, Param, Patch, Post, Query, UseGuards, UsePipes
+} from "@nestjs/common";
 
 import { IdeaService } from "./idea.service";
 import { IdeaDTO } from "./idea.dto";
@@ -9,13 +11,13 @@ import {
   ApiOperation, ApiOkResponse, ApiQuery, ApiNotFoundResponse, ApiBearerAuth, ApiForbiddenResponse,
   ApiBadRequestResponse,
   ApiCreatedResponse,
-  ApiTags,
+  ApiTags
 } from "@nestjs/swagger";
 
 @Controller("ideas")
 @ApiTags("Ideas")
 export class IdeaController {
-  private logger = new Logger("IdeaVoteUpvoteController");
+  private logger = new Logger("IdeaController");
 
   constructor(private ideaService: IdeaService) {
   }
@@ -28,10 +30,22 @@ export class IdeaController {
 
   @Get()
   @ApiOperation({ summary: "Find all ideas." })
-  @ApiOkResponse({ description: "Found all ideas." })
-  @ApiQuery({ name: "page", required: false })
-  findAllIdeas(@Query("page") page: number) {
-    return this.ideaService.findAllIdeas(page);
+  @ApiOkResponse({ description: "Found a page of ideas." })
+  @ApiQuery({ name: "cursor", required: false })
+  @ApiQuery({ name: "limit", required: false })
+  @ApiBadRequestResponse({ description: "The cursor is invalid or the limit is out of range." })
+  findAllIdeas(@Query("cursor") cursor: string, @Query("limit") limit: string) {
+    return this.ideaService.findIdeaPage(cursor, limit);
+  }
+
+  @Get("newest")
+  @ApiOperation({ summary: "Find all newest ideas." })
+  @ApiOkResponse({ description: "Found a page of ideas ordered by created time." })
+  @ApiQuery({ name: "cursor", required: false })
+  @ApiQuery({ name: "limit", required: false })
+  @ApiBadRequestResponse({ description: "The cursor is invalid or the limit is out of range." })
+  findNewestIdeas(@Query("cursor") cursor: string, @Query("limit") limit: string) {
+    return this.ideaService.findIdeaPage(cursor, limit);
   }
 
   @Get(":id")

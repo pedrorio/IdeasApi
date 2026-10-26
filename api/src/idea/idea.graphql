@@ -9,14 +9,19 @@ type Idea {
 
     author: User!
 
-    upvotes: Int!
-    downvotes: Int!
+    score: Int!
 
     comments: [Comment!]
 }
 
+type IdeaPage {
+    items: [Idea!]!
+    nextCursor: String
+}
+
 type Query {
-    ideas(page: Int): [Idea!]
+    ideas(cursor: String, limit: Int): IdeaPage!
+    newestIdeas(cursor: String, limit: Int): IdeaPage!
     idea(id: ID!): Idea!
 }
 

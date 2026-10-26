@@ -1,6 +1,7 @@
 import { IdeaEntity } from "./idea.entity";
 import { UserRO } from "../user/user.ro";
 import { CommentRO } from "../comment/comment.ro";
+import { readScore } from "./vote/scores";
 
 export class IdeaRO {
   id: string;
@@ -11,8 +12,7 @@ export class IdeaRO {
   description: string;
 
   author?: UserRO;
-  upvotes?: number;
-  downvotes?: number;
+  score: number;
 
   comments?: CommentRO[];
 
@@ -22,19 +22,12 @@ export class IdeaRO {
     } = ideaEntity;
 
     const ideaRO: IdeaRO = {
-      id, created, updated, idea, description
+      id, created, updated, idea, description,
+      score: readScore(ideaEntity)
     };
 
     if (ideaEntity.author) {
       ideaRO.author = UserRO.fromUser(ideaEntity.author);
-    }
-
-    if (ideaEntity.downvotes) {
-      ideaRO.downvotes = ideaEntity.downvotes.map(downvote => UserRO.fromUser(downvote)).length;
-    }
-
-    if (ideaEntity.upvotes) {
-      ideaRO.upvotes = ideaEntity.upvotes.map(upvote => UserRO.fromUser(upvote)).length;
     }
 
     if (ideaEntity.comments) {

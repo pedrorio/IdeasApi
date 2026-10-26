@@ -4,7 +4,7 @@ The Ideas API is a NestJS service in `api/`. NestJS modules serve REST and schem
 
 ## Run it locally
 
-Use Node 22, Yarn 1, and Postgres 18. The process drops and recreates the Postgres schema on startup. Use a database you can wipe.
+Use Node 22, Yarn 1, and Postgres 18. Startup runs pending TypeORM migrations and does not drop the schema.
 
 From `api/`, set `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and `JWT_SECRET`. Then run:
 
@@ -19,7 +19,7 @@ To run the same API in Docker, from the repository root export the variables nam
 
 ## Run the tests
 
-From `api/`, run `yarn test`.
+From `api/`, run `yarn test`. `yarn test:migration` and `yarn test:votes` need Postgres 18.
 
 `yarn test:e2e` requests `GET /`. No controller serves that route.
 

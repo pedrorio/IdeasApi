@@ -8,6 +8,7 @@ import { IdeaEntity } from "../../idea/idea.entity";
 import { CommentDTO } from "../comment.dto";
 import { UserEntity } from "../../user/user.entity";
 import { CommentPolicy } from "../comment.policy";
+import { assignScores } from "../../idea/vote/scores";
 
 @Injectable()
 export class CommentIdeaService {
@@ -35,6 +36,7 @@ export class CommentIdeaService {
       skip: 25 * (page - 1)
     });
 
+    await assignScores(this.commentRepository.manager, comments.map(comment => comment.idea));
     return comments.map(comment => CommentRO.fromComment(comment));
   }
 
@@ -52,6 +54,7 @@ export class CommentIdeaService {
     );
 
     await this.commentRepository.save(comment);
+    await assignScores(this.commentRepository.manager, [comment.idea]);
     return CommentRO.fromComment(comment);
   }
 
@@ -88,6 +91,7 @@ export class CommentIdeaService {
       where: { id: commentId },
       relations: ["author", "idea"]
     });
+    await assignScores(this.commentRepository.manager, [comment.idea]);
     return CommentRO.fromComment(comment);
   }
 
@@ -110,6 +114,7 @@ export class CommentIdeaService {
     }
 
     CommentPolicy.authorize(user, comment);
+    await assignScores(this.commentRepository.manager, [comment.idea]);
     await this.commentRepository.delete(commentId);
 
     return CommentRO.fromComment(comment);
