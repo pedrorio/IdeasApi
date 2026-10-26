@@ -4,7 +4,7 @@ context: |
   Ideas API lives in api/ (NestJS, TypeORM, schema-first GraphQL, REST, Swagger).
   Postgres is defined in docker-compose.yml (`postgres:18`). Redis is not. Application code does not connect to Redis.
   Narrative current-state notes are in openspec/project.md. Read that before editing a change.
-  Land the changes in this order: upgrade-stack, add-migrations, votes-table, auth-guard, e2e-tests.
+  Land the changes in this order: upgrade-stack, add-migrations, votes-table, auth-guard, e2e-tests, harden-auth-and-input.
   upgrade-stack must not change request or response behavior.
   ormconfig.js sets synchronize and dropSchema to false and runs migrations on startup. The baseline migration lives in api/src/migration. A schema change needs a new file there.
   Do not implement a change until that change is the one being applied.
@@ -26,6 +26,7 @@ operations:
     guidance:
       - Preserve current behavior except where this change's specs require a difference.
       - Do not upgrade dependencies inside a change other than upgrade-stack.
+      - harden-auth-and-input may upgrade jsonwebtoken and class-validator only. No other package bumps.
   archive:
     guidance:
       - Archive only after the specs' scenarios have an automated test or an explained manual check.
