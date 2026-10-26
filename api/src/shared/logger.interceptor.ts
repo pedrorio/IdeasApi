@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
 import { GqlExecutionContext } from "@nestjs/graphql";
@@ -7,8 +7,9 @@ import { GqlExecutionContext } from "@nestjs/graphql";
 export class LoggerInterceptor implements NestInterceptor {
   intercept(
     context: ExecutionContext,
-    call$: Observable<any>
+    next: CallHandler
   ): Observable<any> {
+    const call$ = next.handle();
     const request = context.switchToHttp().getRequest();
     const now = Date.now();
 

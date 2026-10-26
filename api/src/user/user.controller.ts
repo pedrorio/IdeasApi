@@ -3,24 +3,24 @@ import {
   Param, Query
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { ApiUseTags, ApiOperation, ApiImplicitQuery, ApiNotFoundResponse, ApiOkResponse } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiQuery, ApiNotFoundResponse, ApiOkResponse } from "@nestjs/swagger";
 
 @Controller("users")
-@ApiUseTags("Users")
+@ApiTags("Users")
 export class UserController {
   constructor(private userService: UserService) {
   }
 
   @Get()
-  @ApiOperation({ title: "Find all users." })
+  @ApiOperation({ summary: "Find all users." })
   @ApiOkResponse({ description: "Found all users." })
-  @ApiImplicitQuery({ name: "page", required: false  })
+  @ApiQuery({ name: "page", required: false  })
   findAllUsers(@Query("page") page: number) {
     return this.userService.findAllUsers(page);
   }
 
   @Get(":username")
-  @ApiOperation({ title: "Find specific user." })
+  @ApiOperation({ summary: "Find specific user." })
   @ApiOkResponse({ description: "Found specific user." })
   @ApiNotFoundResponse({ description: "Specific user was not found." })
   findUser(@Param("username") username: string) {

@@ -6,10 +6,10 @@ import {
 import { UserAuthenticationRegistrationService } from "./user-authentication-registration.service";
 import { ValidatorPipe } from "../../../shared/validator.pipe";
 import { UserDTO } from "../../user.dto";
-import { ApiOkResponse, ApiBadRequestResponse, ApiOperation, ApiUseTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiBadRequestResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 @Controller("auth")
-@ApiUseTags("User Authentication Registrations")
+@ApiTags("User Authentication Registrations")
 export class UserAuthenticationRegistrationController {
   constructor(
     private userAuthenticationRegistrationService: UserAuthenticationRegistrationService,
@@ -18,7 +18,7 @@ export class UserAuthenticationRegistrationController {
 
   @Post("register")
   @UsePipes(ValidatorPipe)
-  @ApiOperation({ title: "Create user registration." })
+  @ApiOperation({ summary: "Create user registration." })
   @ApiOkResponse({ description: "Created user registration." })
   @ApiBadRequestResponse({ description: "UserDTO validation failed or user already exists." })
   createRegistration(@Body() data: UserDTO) {

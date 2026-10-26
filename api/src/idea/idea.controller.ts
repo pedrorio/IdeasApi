@@ -6,14 +6,14 @@ import { ValidatorPipe } from "../shared/validator.pipe";
 import { User } from "../user/user.decorator";
 import { UserAuthenticationGuard } from "../user/authentication/user-authentication.guard";
 import {
-  ApiOperation, ApiOkResponse, ApiImplicitQuery, ApiNotFoundResponse, ApiBearerAuth, ApiForbiddenResponse,
+  ApiOperation, ApiOkResponse, ApiQuery, ApiNotFoundResponse, ApiBearerAuth, ApiForbiddenResponse,
   ApiBadRequestResponse,
   ApiCreatedResponse,
-  ApiUseTags,
+  ApiTags,
 } from "@nestjs/swagger";
 
 @Controller("ideas")
-@ApiUseTags("Ideas")
+@ApiTags("Ideas")
 export class IdeaController {
   private logger = new Logger("IdeaVoteUpvoteController");
 
@@ -27,15 +27,15 @@ export class IdeaController {
   }
 
   @Get()
-  @ApiOperation({ title: "Find all ideas." })
+  @ApiOperation({ summary: "Find all ideas." })
   @ApiOkResponse({ description: "Found all ideas." })
-  @ApiImplicitQuery({ name: "page", required: false })
+  @ApiQuery({ name: "page", required: false })
   findAllIdeas(@Query("page") page: number) {
     return this.ideaService.findAllIdeas(page);
   }
 
   @Get(":id")
-  @ApiOperation({ title: "Find specific idea." })
+  @ApiOperation({ summary: "Find specific idea." })
   @ApiOkResponse({ description: "Found specific idea." })
   @ApiNotFoundResponse({ description: "Specific idea was not found." })
   findIdea(@Param("id") id: string) {
@@ -45,7 +45,7 @@ export class IdeaController {
   @Post()
   @UsePipes(ValidatorPipe)
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Create an idea." })
+  @ApiOperation({ summary: "Create an idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiBadRequestResponse({ description: "IdeaDTO validation failed." })
@@ -61,7 +61,7 @@ export class IdeaController {
   @Patch(":id")
   @UsePipes(ValidatorPipe)
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Update a specific idea." })
+  @ApiOperation({ summary: "Update a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiOkResponse({ description: "Updated the specific idea." })
@@ -77,7 +77,7 @@ export class IdeaController {
 
   @Delete(":id")
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Delete a specific idea." })
+  @ApiOperation({ summary: "Delete a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiOkResponse({ description: "Deleted the specific idea." })

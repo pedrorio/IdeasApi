@@ -8,8 +8,18 @@ export class HttpErrorExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest();
 
     const status = exception.getStatus ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
-    const message = (status !== HttpStatus.INTERNAL_SERVER_ERROR) ? (exception.message.error ||
-      exception.message || null) : "Internal Server Error";
+    const rawMessage = exception.message as { error?: string } | string;
+    const resolvedMessage = rawMessage && typeof rawMessage === "object"
+      ? (rawMessage.error || rawMessage)
+      : rawMessage;
+    // Nest 12 renamed the guard-rejection string and the unmatched-route string.
+    // Map them back so existing clients still see the previous bodies.
+    let message = (status !== HttpStatus.INTERNAL_SERVER_ERROR) ? (resolvedMessage || null) : "Internal Server Error";
+    if (message === "Forbidden resource") {
+      message = "Forbidden";
+    } else if (typeof message === "string" && /^Cannot [A-Z]+ /.test(message)) {
+      message = "Not Found";
+    }
 
     if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
       Logger.error(

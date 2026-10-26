@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Ideas API lives in api/ (NestJS, TypeORM, schema-first GraphQL, REST, Swagger).
-  Postgres and Redis are defined in docker-compose.yml. Application code does not connect to Redis.
+  Postgres is defined in docker-compose.yml (`postgres:18`). Redis is not. Application code does not connect to Redis.
   Narrative current-state notes are in openspec/project.md. Read that before editing a change.
   Land the changes in this order: upgrade-stack, add-migrations, votes-table, auth-guard, e2e-tests.
   upgrade-stack must not change request or response behavior.

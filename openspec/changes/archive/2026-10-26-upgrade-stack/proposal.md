@@ -10,7 +10,7 @@ The API is stuck on NestJS 5, TypeScript 3, TypeORM 0.2, and TSLint, and the Com
 - Move TypeORM to the latest 0.3.x and update call sites that no longer compile, including `Repository.findOne(id)` and `findOne(id, { relations })`. Results of those calls stay the same.
 - Move the compiler to TypeScript 5.9 (the last 5.x; 5.9.3). Do not adopt TypeScript 6 or 7 in this change. The current npm `typescript` major is 7, and this change intentionally stops at 5 as requested.
 - Replace TSLint with ESLint. Carry over the current `tslint.json` choices where ESLint has an equivalent (double quotes, max line length 150, member ordering and interface-name checks off).
-- Pin the Postgres and Redis image tags in `docker-compose.yml`. Also pin `api/Dockerfile` (`node:alpine` today) and `nginx/Dockerfile` (untagged `nginx` today).
+- Pin the Postgres image tag in `docker-compose.yml`. Remove the Redis service and stop the API container waiting on it: application code does not connect to Redis, so pinning that image would keep an unused service. Also pin `api/Dockerfile` (`node:alpine` today) and `nginx/Dockerfile` (untagged `nginx` today).
 - Leave HTTP routes, GraphQL fields, status codes, and the database schema unchanged.
 
 ## Capabilities
@@ -25,6 +25,6 @@ The API is stuck on NestJS 5, TypeScript 3, TypeORM 0.2, and TSLint, and the Com
 
 - `api/package.json`, `api/yarn.lock`, `api/tslint.json` (removed), ESLint config, `api/tsconfig*.json`.
 - NestJS 5 decorators that were renamed (`ApiModelProperty`, `ApiUseTags`, `ApiImplicitQuery`, and GraphQL `forRoot`) need compile-only updates.
-- `docker-compose.yml`, `api/Dockerfile`, `nginx/Dockerfile`.
+- `docker-compose.yml` (Postgres pin, Redis service removed), `api/Dockerfile`, `nginx/Dockerfile`.
 - `.github/workflows/ci.yml` Node version, if NestJS 12 requires a different Node than 22.
 - No schema migration in this change. `synchronize` and `dropSchema` stay as they are until `add-migrations`.

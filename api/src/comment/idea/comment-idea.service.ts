@@ -22,14 +22,14 @@ export class CommentIdeaService {
   }
 
   async findAllIdeaComments(ideaId: string, page: number = 1) {
-    const idea = await this.ideaRepository.findOne(ideaId);
+    const idea = await this.ideaRepository.findOne({ where: { id: ideaId } });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
     const comments = await this.commentRepository.find({
-      where: { idea },
+      where: { idea: { id: idea.id } },
       relations: ["author", "idea"],
       take: 25,
       skip: 25 * (page - 1)
@@ -40,13 +40,13 @@ export class CommentIdeaService {
 
   async createIdeaComment(ideaId: string, userId: string, data: CommentDTO) {
 
-    const idea = await this.ideaRepository.findOne(ideaId);
+    const idea = await this.ideaRepository.findOne({ where: { id: ideaId } });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
-    const user = await this.userRepository.findOne(userId);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     const comment = await this.commentRepository.create(
       { ...data, idea, author: user }
     );
@@ -61,18 +61,18 @@ export class CommentIdeaService {
     userId: string,
     data: Partial<CommentDTO>
   ) {
-    const idea = await this.ideaRepository.findOne(ideaId);
+    const idea = await this.ideaRepository.findOne({ where: { id: ideaId } });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
-    const user = await this.userRepository.findOne(userId);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
 
-    let comment = await this.commentRepository.findOne(
-      commentId,
-      { relations: ["author", "idea"] }
-    );
+    let comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ["author", "idea"]
+    });
 
     if (!comment) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
@@ -84,10 +84,10 @@ export class CommentIdeaService {
       { ...data, idea, author: user }
     );
 
-    comment = await this.commentRepository.findOne(
-      commentId,
-      { relations: ["author", "idea"] }
-    );
+    comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+      relations: ["author", "idea"]
+    });
     return CommentRO.fromComment(comment);
   }
 
@@ -96,14 +96,14 @@ export class CommentIdeaService {
     commentId: string,
     userId: string,
   ) {
-    const idea = await this.ideaRepository.findOne(ideaId);
+    const idea = await this.ideaRepository.findOne({ where: { id: ideaId } });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
-    const user = await this.userRepository.findOne(userId);
-    const comment = await this.commentRepository.findOne(commentId, { relations: ["author", "idea"] });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const comment = await this.commentRepository.findOne({ where: { id: commentId }, relations: ["author", "idea"] });
 
     if (!comment) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);

@@ -8,16 +8,16 @@ The application code is in `api/`. Nothing in this baseline change is allowed to
 
 | Piece | What the repo uses |
 | --- | --- |
-| Framework | NestJS 5 (`@nestjs/common`, `@nestjs/core`, `@nestjs/graphql`, `@nestjs/swagger` `^5` / swagger `^2`) |
-| Language | TypeScript. `package.json` declared `^3.0.1` and the lockfile resolved **3.2.4**. CI pins **3.9.10** (still TypeScript 3) because 3.2.4 cannot parse declaration files already in the lockfile. |
-| ORM | TypeORM `^0.2.25` via `@nestjs/typeorm` `^5.2.2`, driver `pg` 7 |
-| Lint | TSLint 5.11 (`tslint:recommended`), Prettier 1 |
-| Tests | Jest 23 and ts-jest 23. Four unit specs, each asserting `toBeDefined`. One starter e2e spec. |
-| API style | REST (Express) and schema-first GraphQL (`typePaths: ["./**/*.graphql"]`). Swagger UI at `/docs`. |
+| Framework | NestJS 12.2.0. `@nestjs/graphql` and `@nestjs/apollo` are 14.0.3 (the release that peers with Nest 12). `@nestjs/swagger` 12.0.4, `@apollo/server` 5.5.1, `graphql` 16.14.2 |
+| Language | TypeScript 5.9.3. `skipLibCheck` stays on. |
+| ORM | TypeORM 0.3.31 via `@nestjs/typeorm` 12.0.2, driver `pg` 8.23.1 |
+| Lint | ESLint 9 flat config (`api/eslint.config.mjs`) and typescript-eslint 8. TSLint is gone. Prettier 1 remains. |
+| Tests | Jest 29 and ts-jest 29. Four unit specs, each asserting `toBeDefined`. Jest rewrites `@nestjs` and `@apollo` ESM in `api/test/jest-esm-transformer.js`. One starter e2e spec. |
+| API style | REST (Express 5) and schema-first GraphQL (`typePaths: ["./**/*.graphql"]`, Apollo driver). Swagger UI at `/docs` (bare `/docs` redirects to `/docs/`). OpenAPI 3 document at `/docs-json`, server URL `/api`. |
 | Auth | Hand-rolled JWT (`jsonwebtoken`), password hash `bcryptjs`, expiry `7d` |
-| Containers | `docker-compose.yml`: nginx, api, `redis:latest`, `postgres:latest` |
+| Containers | `docker-compose.yml`: nginx, api, `postgres:18`. No Redis service. |
 
-`api/Dockerfile` is `FROM node:alpine` (unpinned). `nginx/Dockerfile` is `FROM nginx` (unpinned). The API image waits on `postgres:5432` and `redis:6379`, then runs `yarn start:dev`.
+`api/Dockerfile` is `FROM node:22-alpine`. `nginx/Dockerfile` is `FROM nginx` (unpinned). The API image waits on `postgres:5432`, then runs `yarn start:dev`.
 
 ## Modules
 
@@ -51,7 +51,9 @@ Docker Compose from the repo root expects environment variables listed in `docke
 
 ## Data model
 
-TypeORM entity metadata is the schema. `api/ormconfig.js` sets `synchronize: true` and `dropSchema: true`. Every API process drops the schema and recreates it from entities. `migrations` points at `./src/migration/**/*.ts`, and that directory does not exist. `cli.migrationsDir` is `./src`, not a migrations folder.
+TypeORM entity metadata is the schema. `api/ormconfig.js` sets `synchronize: true` and `dropSchema: true`. Every API process drops the schema and recreates it from entities. `migrations` points at `./src/migration/**/*.ts`, and that directory does not exist. `cli.migrationsDir` is `./src`, not a migrations folder. The `cli` key is TypeORM 0.2-only; `AppModule` strips it before `TypeOrmModule.forRoot` and does not change `synchronize` or `dropSchema`.
+
+TypeORM 0.3 synchronize still matches the previous 0.2 schema: `uuid_generate_v4()` ids, `timestamp without time zone` timestamps defaulting to `now()`, and join tables `idea_upvotes_user`, `idea_downvotes_user`, and `user_bookmarks_idea` with camelCase foreign keys (`ideaId`, `userId`, `authorId`). `add-migrations` should capture this 0.3 output. It does not need a new naming scheme.
 
 Entities:
 
@@ -67,16 +69,16 @@ Checked against the code, not only against the original notes.
 2. **Idea HTTP and GraphQL responses already expose vote counts, not voter lists.** `IdeaRO.fromIdea` assigns `upvotes` and `downvotes` to the array lengths. `idea.graphql` types those fields as `Int!`. The voter lists exist only in the database relations. List endpoints use an offset `page` query (`take: 25`), not a cursor. `GET /ideas` has no `order`.
 3. **The auth guard does not crash when the token's user row is missing.** `findRegistration` throws `HttpException` `403` with message `Invalid Token`. `jwt.verify` already catches expiry (`expiresIn: "7d"`) and answers `403` with `Token error: ...`. A missing `Authorization` header returns `false`, which Nest turns into `403`. The HTTP path logs `request.user` after `UserAuthenticationRO.fromUser`. That object is `{ id, username, created, token }`. The password column is not copied. The `token` getter signs a **new** JWT, so the log line contains a bearer token.
 4. **`dropSchema: true` wipes data on every boot.** Turning off only `synchronize` would still drop the schema.
-5. **Redis is unused.** `redisConfig` in `app.constants.ts` is commented out. Compose still starts `redis:latest`, and the API container waits for it.
+5. **Redis is unused.** `redisConfig` in `app.constants.ts` is commented out. Compose does not start Redis, and the API container does not wait for it. The commented config and the unused session prefix constants are still in `app.constants.ts`.
 6. **Bookmark and unbookmark are unsafe.** `bookmarkIdea` calls `user.bookmarks.filter` without loading the `bookmarks` relation, so a normal `findOne` result throws. `unbookmarkIdea` filters with `===` against the idea, which **keeps** the matching bookmark and drops the others.
 7. **Authorisation compares `JSON.stringify` of the user and the author.** `IdeaPolicy.authorize` does not compare ids.
-8. **Images float.** `postgres:latest`, `redis:latest`, `node:alpine`, and untagged `nginx`.
+8. **Image tags are major pins, not digests.** `postgres:18`, `node:22-alpine`, and `nginx:1.30`. A later digest pin is out of scope.
 
 ## Planned changes
 
 Proposals only, in this order:
 
-1. `upgrade-stack` — NestJS 12, TypeScript 5, TypeORM 0.3, ESLint, pinned images. No request-behavior change.
+1. `upgrade-stack` — done in this tree: NestJS 12, TypeScript 5.9, TypeORM 0.3, ESLint, pinned images, Redis removed. Request and response behavior was kept. The next change is `add-migrations`.
 2. `add-migrations` — baseline migration, `synchronize: false`, `dropSchema: false`.
 3. `votes-table` — `votes(user_id, idea_id, value)` and an idempotent set-vote API.
 4. `auth-guard` — `401` when the user row is missing, no secret logging, explicit expiry handling.

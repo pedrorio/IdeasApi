@@ -12,49 +12,49 @@ import * as jwt from "jsonwebtoken";
 import { IdeaEntity } from "../idea/idea.entity";
 import { jwtSecret } from "../app.constants";
 import { CommentEntity } from "../comment/comment.entity";
-import { ApiModelProperty } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 
 @Entity("user")
 export class UserEntity {
 
   @PrimaryGeneratedColumn("uuid")
-  @ApiModelProperty()
+  @ApiProperty()
   id: string;
 
   @CreateDateColumn()
-  @ApiModelProperty()
+  @ApiProperty()
   created: Date;
 
   @UpdateDateColumn()
-  @ApiModelProperty()
+  @ApiProperty()
   updated: Date;
 
   @Column({
     type: "text",
     unique: true
   })
-  @ApiModelProperty()
+  @ApiProperty()
   username: string;
 
   @Column("text")
-  @ApiModelProperty()
+  @ApiProperty()
   password: string;
 
   @OneToMany(type => IdeaEntity, idea => idea.author)
-  @ApiModelProperty({
+  @ApiProperty({
     type: [IdeaEntity]
   })
   ideas: IdeaEntity[];
 
   @ManyToMany(type => IdeaEntity, { cascade: true })
   @JoinTable()
-  @ApiModelProperty({
+  @ApiProperty({
     type: [IdeaEntity]
   })
   bookmarks: IdeaEntity[];
 
   @OneToMany(type => CommentEntity, comment => comment.author)
-  @ApiModelProperty({
+  @ApiProperty({
     type: [CommentEntity]
   })
   comments: CommentEntity[];

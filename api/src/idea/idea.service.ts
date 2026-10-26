@@ -33,7 +33,7 @@ export class IdeaService {
   }
 
   async findIdea(id: string) {
-    const idea = await this.ideaRepository.findOne(id, {
+    const idea = await this.ideaRepository.findOne({ where: { id },
       relations: [
         "author",
         "upvotes",
@@ -50,7 +50,7 @@ export class IdeaService {
   }
 
   async createIdea(userId: string, data: IdeaDTO) {
-    const user = await this.userRepository.findOne(userId);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     const idea = await this.ideaRepository.create({ ...data, author: user });
 
     await this.ideaRepository.save(idea);
@@ -58,8 +58,8 @@ export class IdeaService {
   }
 
   async updateIdea(id: string, userId: string, data: Partial<IdeaDTO>) {
-    const user = await this.userRepository.findOne(userId);
-    let idea = await this.ideaRepository.findOne(id, {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    let idea = await this.ideaRepository.findOne({ where: { id },
       relations: [
         "author",
         "upvotes",
@@ -75,7 +75,7 @@ export class IdeaService {
     IdeaPolicy.authorize(user, idea);
     await this.ideaRepository.update(id, data);
 
-    idea = await this.ideaRepository.findOne(id, {
+    idea = await this.ideaRepository.findOne({ where: { id },
       relations: [
         "author",
         "upvotes",
@@ -87,8 +87,8 @@ export class IdeaService {
   }
 
   async deleteIdea(id: string, userId: string) {
-    const user = await this.userRepository.findOne(userId);
-    const idea = await this.ideaRepository.findOne(id, {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const idea = await this.ideaRepository.findOne({ where: { id },
       relations: [
         "author",
         "upvotes",

@@ -22,14 +22,23 @@ async function bootstrap() {
   app.enableCors();
 
   const options = new DocumentBuilder()
-  .setBasePath("api")
   .setTitle("Ideas API")
   .setDescription("A NestJS API")
   .setVersion("1.0")
   .addBearerAuth()
+  .addServer("/api")
   .build();
 
   const document = SwaggerModule.createDocument(app, options);
+
+  // NestJS Swagger 2 redirected the bare docs path. Swagger 12 serves it.
+  app.use((req, res, next) => {
+    if (req.path === "/docs") {
+      res.redirect(301, "/docs/");
+      return;
+    }
+    next();
+  });
 
   SwaggerModule.setup("docs", app, document);
 
