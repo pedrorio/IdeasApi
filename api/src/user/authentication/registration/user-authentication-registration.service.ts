@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -36,10 +37,7 @@ export class UserAuthenticationRegistrationService {
     const user = await this.userRepository.findOne({ where: { username } });
 
     if (!user) {
-      throw new HttpException(
-        "Invalid Token",
-        HttpStatus.FORBIDDEN
-      );
+      throw new UnauthorizedException("Unknown user");
     }
 
     return UserAuthenticationRO.fromUser(user);

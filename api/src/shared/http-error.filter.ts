@@ -4,8 +4,16 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logge
 export class HttpErrorExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost): any {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    let response;
+    try {
+      response = ctx.getResponse();
+    } catch (error) {
+      return;
+    }
+    if (!response || typeof response.status !== "function") {
+      return;
+    }
+    const request = ctx.getRequest() || {};
 
     const status = exception.getStatus ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
     const rawMessage = exception.message as { error?: string } | string;
