@@ -6,7 +6,40 @@ on:
 
 jobs:
   api:
-    name: API build, lint, unit tests, and migration e2e
+    name: API build, lint, and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: api/yarn.lock
+
+      - name: Install Yarn 1
+        run: npm install --global yarn@1.22.22
+        working-directory: .
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Unit tests
+        run: yarn test --ci --forceExit
+
+  e2e:
+    name: API e2e
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,38 +76,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build
-        run: yarn build
-
-      - name: Lint
-        run: yarn lint
-
-      - name: Unit tests
-        run: yarn test --ci --forceExit
-
-      - name: Migration e2e
+      - name: E2E
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: "5432"
           POSTGRES_USER: ideas
           POSTGRES_PASSWORD: ideas
           JWT_SECRET: ci-secret
-        run: yarn test:migration
-
-      - name: Vote e2e
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
-          POSTGRES_USER: ideas
-          POSTGRES_PASSWORD: ideas
-          JWT_SECRET: ci-secret
-        run: yarn test:votes
-
-      - name: Auth guard e2e
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
-          POSTGRES_USER: ideas
-          POSTGRES_PASSWORD: ideas
-          JWT_SECRET: ci-secret
-        run: yarn test:auth
+        run: yarn test:e2e
