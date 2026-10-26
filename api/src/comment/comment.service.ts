@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 
 import { CommentEntity } from "./comment.entity";
 import { CommentRO } from "./comment.ro";
+import { assignScores } from "../idea/vote/scores";
 
 @Injectable()
 export class CommentService {
@@ -20,6 +21,7 @@ export class CommentService {
       skip: 25 * (page - 1)
     });
 
+    await assignScores(this.commentRepository.manager, comments.map(comment => comment.idea));
     return comments.map(comment => CommentRO.fromComment(comment));
   }
 
@@ -30,6 +32,7 @@ export class CommentService {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
+    await assignScores(this.commentRepository.manager, [comment.idea]);
     return CommentRO.fromComment(comment);
   }
 

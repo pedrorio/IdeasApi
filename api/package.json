@@ -19,6 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:migration": "node -r ts-node/register -r tsconfig-paths/register test/schema-migration.e2e.js",
+    "test:votes": "node -r ts-node/register -r tsconfig-paths/register test/idea-votes.e2e.js",
     "migration:run": "node -r ts-node/register -r tsconfig-paths/register scripts/run-migrations.js"
   },
   "dependencies": {

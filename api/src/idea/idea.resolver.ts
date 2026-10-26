@@ -12,8 +12,13 @@ export class IdeaResolver {
   }
 
   @Query()
-  ideas(@Args("page") page: number) {
-    return this.ideaService.findAllIdeas(page);
+  ideas(@Args("cursor") cursor: string, @Args("limit") limit: number) {
+    return this.ideaService.findIdeaPage(cursor, limit);
+  }
+
+  @Query()
+  newestIdeas(@Args("cursor") cursor: string, @Args("limit") limit: number) {
+    return this.ideaService.findIdeaPage(cursor, limit);
   }
 
   @Query()

@@ -7,6 +7,7 @@ const { DataSource } = require("typeorm");
 const { UserEntity } = require("../src/user/user.entity");
 const { IdeaEntity } = require("../src/idea/idea.entity");
 const { CommentEntity } = require("../src/comment/comment.entity");
+const { VoteEntity } = require("../src/idea/vote/vote.entity");
 
 const apiDir = path.resolve(__dirname, "..");
 const migrationDatabase = `ideas_mig_${process.pid}_${Date.now()}`;
@@ -183,7 +184,7 @@ async function synchronizeEmptyDatabase() {
     synchronize: true,
     dropSchema: true,
     logging: false,
-    entities: [UserEntity, IdeaEntity, CommentEntity]
+    entities: [UserEntity, IdeaEntity, CommentEntity, VoteEntity]
   });
   await sync.initialize();
   await sync.destroy();
