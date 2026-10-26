@@ -47,7 +47,7 @@ yarn start          # ts-node src/main.ts
 
 Docker Compose from the repo root expects environment variables listed in `docker-compose.yml` (`POSTGRES_*`, `JWT_SECRET`, `SESSION_SECRET`, hosts and ports). `ormconfig.js` reads the Postgres variables. `JWT_SECRET` has no default in `api/src/app.constants.ts`.
 
-`yarn test:e2e` loads `AppModule`, which connects to Postgres. The only case in that config calls `GET /` and expects `Hello World!`. No controller serves that route. `yarn test:migration` creates a throwaway database, starts the app, registers a user, starts the app again, and reads that user back. `yarn test:votes` creates a throwaway database, runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn test:auth` checks login, a live token, a missing header, a bad signature, an expired token, and a deleted user on REST and GraphQL. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
+`yarn test:e2e` creates throwaway databases on the Postgres given by `POSTGRES_*` and runs `test/schema-migration.e2e.js`, `test/idea-votes.e2e.js`, and `test/auth-guard.e2e.js`. It fails if that Postgres is unreachable. It does not request `GET /`. `yarn test:migration` registers a user, restarts the app, and reads that user back. `yarn test:votes` runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn test:auth` checks login, a live token, a missing header, a bad signature, an expired token, and a deleted user on REST and GraphQL. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
 
 ## Data model
 
@@ -80,8 +80,8 @@ Proposals only, in this order:
 2. `add-migrations` — done in this tree: baseline migration in `api/src/migration`, `synchronize: false`, `dropSchema: false`.
 3. `votes-table` — done in this tree: `votes(user_id, idea_id, value)`, `PUT /ideas/:id/vote`, GraphQL `setVote`, and cursor pages. Idea reads do not include `viewerVote`.
 4. `auth-guard` — done in this tree: `401` when the user row is missing or the token is expired, `403` for a missing header or a bad signature, and the guard does not log a bearer token.
-5. `e2e-tests` — throwaway Postgres for auth and voting. `add-migrations`, `votes-table`, and `auth-guard` each land with their own e2e tests.
+5. `e2e-tests` — done in this tree: `yarn test:e2e` runs the migration, vote, and auth checks on a throwaway database. The unit CI job does not start Postgres.
 
 ## CI baseline
 
-`.github/workflows/ci.yml` runs on Node 22. It installs the lockfile, builds, lints, and runs the unit tests. It also starts Postgres 18 and runs `yarn test:migration`, `yarn test:votes`, and `yarn test:auth`. It does not run `yarn test:e2e`.
+`.github/workflows/ci.yml` runs on Node 22. The unit job installs the lockfile, builds, lints, and runs the unit tests. It does not start Postgres. A separate job starts Postgres 18 and runs `yarn test:e2e`.
