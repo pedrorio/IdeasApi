@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus, Logger } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
 import * as jwt from "jsonwebtoken";
 
@@ -25,7 +25,6 @@ export class UserAuthenticationGuard implements CanActivate {
       user = await this.userAuthenticationRegistrationService.findRegistration(user.username);
 
       request.user = user;
-      Logger.log(request.user, "UserAuthenticationGuard");
 
       return true;
 
@@ -57,15 +56,20 @@ export class UserAuthenticationGuard implements CanActivate {
 
     const token = auth.split(" ")[1];
     try {
-      const decodedToken = jwt.verify(token, jwtSecret);
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET || jwtSecret);
       return decodedToken;
     } catch (error) {
+      if (error && error.name === "TokenExpiredError") {
+        throw new HttpException(
+          "Token expired",
+          HttpStatus.UNAUTHORIZED
+        );
+      }
       const message = `Token error: ${error.message || error.name}`;
       throw new HttpException(
         message,
         HttpStatus.FORBIDDEN
       );
-
     }
   }
 

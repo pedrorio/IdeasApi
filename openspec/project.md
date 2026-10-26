@@ -24,7 +24,7 @@ The application code is in `api/`. Nothing in this baseline change is allowed to
 `AppModule` imports TypeORM, GraphQL, `IdeaModule`, `UserModule`, and `CommentModule`.
 
 - **Users** (`api/src/user`): `UserEntity` (`user` table) with username, password hash, ideas, bookmarks, comments. `GET /users` and `GET /users/:username` page with `take: 25` and `skip`.
-- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser`, `loginUser`, `findMe`. `UserAuthenticationGuard` checks `Authorization: Bearer`.
+- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser`, `loginUser`, `findMe`. `UserAuthenticationGuard` checks `Authorization: Bearer`. A missing header or a bad signature is 403. An expired token or a token whose user row is gone is 401. The guard does not log the user or the bearer token.
 - **Ideas** (`api/src/idea`): create, read, update, delete. Reads load `author` and `comments` and a numeric `score`. `GET /ideas` and `GET /ideas/newest` return `{ items, nextCursor }`, ordered by `created` descending then `id` descending. The default limit is 25 and the maximum is 100.
 - **Votes** (`api/src/idea/vote`): `PUT /ideas/:id/vote` with `{ value: 1 | -1 | 0 }` and GraphQL `setVote`. Storage is the `votes` table, one row per user and idea. The write response is `{ score, viewerVote }`. Idea reads do not include `viewerVote`.
 - **Bookmarks** (`api/src/idea/bookmark`): `POST /ideas/:id/bookmark` and `DELETE /ideas/:id/bookmark`. Storage is a `ManyToMany` on `UserEntity`.
@@ -47,7 +47,7 @@ yarn start          # ts-node src/main.ts
 
 Docker Compose from the repo root expects environment variables listed in `docker-compose.yml` (`POSTGRES_*`, `JWT_SECRET`, `SESSION_SECRET`, hosts and ports). `ormconfig.js` reads the Postgres variables. `JWT_SECRET` has no default in `api/src/app.constants.ts`.
 
-`yarn test:e2e` loads `AppModule`, which connects to Postgres. The only case in that config calls `GET /` and expects `Hello World!`. No controller serves that route. `yarn test:migration` creates a throwaway database, starts the app, registers a user, starts the app again, and reads that user back. `yarn test:votes` creates a throwaway database, runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
+`yarn test:e2e` loads `AppModule`, which connects to Postgres. The only case in that config calls `GET /` and expects `Hello World!`. No controller serves that route. `yarn test:migration` creates a throwaway database, starts the app, registers a user, starts the app again, and reads that user back. `yarn test:votes` creates a throwaway database, runs the votes migration up and down, then checks set-vote, cursor pages, and `GET /ideas/newest`. `yarn test:auth` checks login, a live token, a missing header, a bad signature, an expired token, and a deleted user on REST and GraphQL. `yarn migration:run` applies `api/src/migration` without listening for HTTP.
 
 ## Data model
 
@@ -66,23 +66,22 @@ Entities:
 
 Checked against the code, not only against the original notes.
 
-1. **The auth guard does not crash when the token's user row is missing.** `findRegistration` throws `HttpException` `403` with message `Invalid Token`. `jwt.verify` already catches expiry (`expiresIn: "7d"`) and answers `403` with `Token error: ...`. A missing `Authorization` header returns `false`, which Nest turns into `403`. The HTTP path logs `request.user` after `UserAuthenticationRO.fromUser`. That object is `{ id, username, created, token }`. The password column is not copied. The `token` getter signs a **new** JWT, so the log line contains a bearer token.
-2. **Redis is unused.** `redisConfig` in `app.constants.ts` is commented out. Compose does not start Redis, and the API container does not wait for it. The commented config and the unused session prefix constants are still in `app.constants.ts`.
-3. **Bookmark and unbookmark are unsafe.** `bookmarkIdea` calls `user.bookmarks.filter` without loading the `bookmarks` relation, so a normal `findOne` result throws. `unbookmarkIdea` filters with `===` against the idea, which **keeps** the matching bookmark and drops the others.
-4. **Authorisation compares `JSON.stringify` of the user and the author.** `IdeaPolicy.authorize` does not compare ids.
-5. **Image tags are major pins, not digests.** `postgres:18`, `node:22-alpine`, and `nginx:1.30`. A later digest pin is out of scope.
-6. **Unit specs still only call `toBeDefined`.** Vote behavior is covered by `yarn test:votes`, not by those four specs.
+1. **Redis is unused.** `redisConfig` in `app.constants.ts` is commented out. Compose does not start Redis, and the API container does not wait for it. The commented config and the unused session prefix constants are still in `app.constants.ts`.
+2. **Bookmark and unbookmark are unsafe.** `bookmarkIdea` calls `user.bookmarks.filter` without loading the `bookmarks` relation, so a normal `findOne` result throws. `unbookmarkIdea` filters with `===` against the idea, which **keeps** the matching bookmark and drops the others.
+3. **Authorisation compares `JSON.stringify` of the user and the author.** `IdeaPolicy.authorize` does not compare ids.
+4. **Image tags are major pins, not digests.** `postgres:18`, `node:22-alpine`, and `nginx:1.30`. A later digest pin is out of scope.
+5. **The other unit specs still only call `toBeDefined`.** Vote behavior is covered by `yarn test:votes`. The guard's log and status codes are covered by `user-authentication.guard.spec.ts` and `yarn test:auth`.
 
 ## Planned changes
 
 Proposals only, in this order:
 
 1. `upgrade-stack` — done in this tree: NestJS 12, TypeScript 5.9, TypeORM 0.3, ESLint, pinned images, Redis removed. Request and response behavior was kept.
-2. `add-migrations` — done in this tree: baseline migration in `api/src/migration`, `synchronize: false`, `dropSchema: false`. The next change is `votes-table`.
+2. `add-migrations` — done in this tree: baseline migration in `api/src/migration`, `synchronize: false`, `dropSchema: false`.
 3. `votes-table` — done in this tree: `votes(user_id, idea_id, value)`, `PUT /ideas/:id/vote`, GraphQL `setVote`, and cursor pages. Idea reads do not include `viewerVote`.
-4. `auth-guard` — `401` when the user row is missing, no secret logging, explicit expiry handling.
+4. `auth-guard` — done in this tree: `401` when the user row is missing or the token is expired, `403` for a missing header or a bad signature, and the guard does not log a bearer token.
 5. `e2e-tests` — throwaway Postgres for auth and voting. `add-migrations`, `votes-table`, and `auth-guard` each land with their own e2e tests.
 
 ## CI baseline
 
-`.github/workflows/ci.yml` runs on Node 22. It installs the lockfile, builds, lints, and runs the unit tests. It also starts Postgres 18 and runs `yarn test:migration` and `yarn test:votes`. It does not run `yarn test:e2e`.
+`.github/workflows/ci.yml` runs on Node 22. It installs the lockfile, builds, lints, and runs the unit tests. It also starts Postgres 18 and runs `yarn test:migration`, `yarn test:votes`, and `yarn test:auth`. It does not run `yarn test:e2e`.

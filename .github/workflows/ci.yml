@@ -69,3 +69,12 @@ jobs:
           POSTGRES_PASSWORD: ideas
           JWT_SECRET: ci-secret
         run: yarn test:votes
+
+      - name: Auth guard e2e
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: ideas
+          POSTGRES_PASSWORD: ideas
+          JWT_SECRET: ci-secret
+        run: yarn test:auth
