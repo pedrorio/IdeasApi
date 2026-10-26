@@ -19,7 +19,7 @@ To run the same API in Docker, from the repository root export the variables nam
 
 ## Run the tests
 
-From `api/`, run `yarn test`. `yarn test:migration` and `yarn test:votes` need Postgres 18.
+From `api/`, run `yarn test`. `yarn test:migration`, `yarn test:votes`, and `yarn test:auth` need Postgres 18.
 
 `yarn test:e2e` requests `GET /`. No controller serves that route.
 
