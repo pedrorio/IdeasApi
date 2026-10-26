@@ -82,5 +82,5 @@ jobs:
           POSTGRES_PORT: "5432"
           POSTGRES_USER: ideas
           POSTGRES_PASSWORD: ideas
-          JWT_SECRET: ci-secret
+          JWT_SECRET: ci-secret-padding-0000000000032b
         run: yarn test:e2e

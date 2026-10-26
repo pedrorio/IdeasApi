@@ -9,6 +9,17 @@ import { IdeaPolicy } from "./idea.policy";
 import { decodeIdeaCursor, encodeIdeaCursor, parsePageLimit } from "./idea-page";
 import { assignScores } from "./vote/scores";
 
+function ideaText(data: Partial<IdeaDTO>): { idea?: string; description?: string } {
+  const fields: { idea?: string; description?: string } = {};
+  if (typeof data.idea === "string") {
+    fields.idea = data.idea;
+  }
+  if (typeof data.description === "string") {
+    fields.description = data.description;
+  }
+  return fields;
+}
+
 export class IdeaPage {
   items: IdeaRO[];
   nextCursor: string | null;
@@ -84,7 +95,11 @@ export class IdeaService {
 
   async createIdea(userId: string, data: IdeaDTO) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    const idea = await this.ideaRepository.create({ ...data, author: user });
+    const idea = this.ideaRepository.create({
+      idea: data.idea,
+      description: data.description,
+      author: user
+    });
 
     await this.ideaRepository.save(idea);
     return IdeaRO.fromIdea(idea);
@@ -102,7 +117,7 @@ export class IdeaService {
     }
 
     IdeaPolicy.authorize(user, idea);
-    await this.ideaRepository.update(id, data);
+    await this.ideaRepository.update(id, ideaText(data));
 
     idea = await this.ideaRepository.findOne({
       where: { id },

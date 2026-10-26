@@ -20,14 +20,17 @@ export class UserAuthenticationRegistrationService {
   }
 
   async createRegistration(data: UserDTO) {
-    const { username } = data;
-    let user = await this.userRepository.findOne({ where: { username } });
+    const username = data.username;
+    const existing = await this.userRepository.findOne({ where: { username } });
 
-    if (user) {
+    if (existing) {
       throw new HttpException("User already exists", HttpStatus.BAD_REQUEST);
     }
 
-    user = await this.userRepository.create(data);
+    const user = this.userRepository.create({
+      username: data.username,
+      password: data.password
+    });
     await this.userRepository.save(user);
 
     return UserAuthenticationRO.fromUser(user);

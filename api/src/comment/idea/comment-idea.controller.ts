@@ -69,7 +69,7 @@ export class CommentIdeaController {
     @Param("ideaId") ideaId: string,
     @Param("commentId") commentId: string,
     @User("id") userId: string,
-    @Body() data: Partial<CommentDTO>
+    @Body() data: CommentDTO
   ) {
     this.logData({ ideaId, commentId, userId, data });
     return this.commentIdeaService.updateIdeaComment(ideaId, commentId, userId, data);

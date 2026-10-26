@@ -83,7 +83,7 @@ export class IdeaController {
   updateIdea(
     @Param("id") id: string,
     @User("id") userId: string,
-    @Body() data: Partial<IdeaDTO>
+    @Body() data: IdeaDTO
   ) {
     this.logData({ id, userId, data });
     return this.ideaService.updateIdea(id, userId, data);

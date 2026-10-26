@@ -8,7 +8,8 @@ const apiDir = path.resolve(__dirname, "..");
 const files = [
   "test/schema-migration.e2e.js",
   "test/idea-votes.e2e.js",
-  "test/auth-guard.e2e.js"
+  "test/auth-guard.e2e.js",
+  "test/harden-auth.e2e.js"
 ];
 
 function fail(message) {
