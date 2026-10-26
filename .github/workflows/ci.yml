@@ -6,11 +6,25 @@ on:
 
 jobs:
   api:
-    name: API build, lint, and unit tests
+    name: API build, lint, unit tests, and migration e2e
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: api
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: ideas
+          POSTGRES_PASSWORD: ideas
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ideas -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,3 +51,12 @@ jobs:
 
       - name: Unit tests
         run: yarn test --ci --forceExit
+
+      - name: Migration e2e
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: ideas
+          POSTGRES_PASSWORD: ideas
+          JWT_SECRET: ci-secret
+        run: yarn test:migration

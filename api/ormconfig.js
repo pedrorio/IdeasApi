@@ -6,8 +6,9 @@ module.exports = [
     username: process.env.POSTGRES_USER,
     password: process.env.POSTGRES_PASSWORD,
     database: process.env.POSTGRES_DB,
-    synchronize: true,
-    dropSchema: true,
+    synchronize: false,
+    dropSchema: false,
+    migrationsRun: true,
     logging: true,
     entities: [
       "./src/**/*.entity.ts",
@@ -21,7 +22,7 @@ module.exports = [
     ],
     cli: {
       entitiesDir: "./src",
-      migrationsDir: "./src",
+      migrationsDir: "./src/migration",
       subscribersDir: "./src"
     }
   }
