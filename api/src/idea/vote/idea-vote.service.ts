@@ -17,16 +17,16 @@ export class IdeaVoteService {
   }
 
   async voteIdea(id: string, userId: string, vote: IdeaVote) {
-    const idea = await this.ideaRepository.findOne(
-      id,
-      { relations: ["author", "upvotes", "downvotes", "comments"] }
-    );
+    const idea = await this.ideaRepository.findOne({
+      where: { id },
+      relations: ["author", "upvotes", "downvotes", "comments"]
+    });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
     }
 
-    const user = await this.userRepository.findOne(userId);
+    const user = await this.userRepository.findOne({ where: { id: userId } });
 
     const oppositeVote = vote === IdeaVote.UP ? IdeaVote.DOWN : IdeaVote.UP;
 

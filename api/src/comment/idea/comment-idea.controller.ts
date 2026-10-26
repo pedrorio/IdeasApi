@@ -5,14 +5,14 @@ import { UserAuthenticationGuard } from "../../user/authentication/user-authenti
 import { User } from "../../user/user.decorator";
 import { CommentDTO } from "../comment.dto";
 import {
-  ApiUseTags, ApiImplicitQuery, ApiOperation, ApiNotFoundResponse, ApiOkResponse, ApiForbiddenResponse,
+  ApiTags, ApiQuery, ApiOperation, ApiNotFoundResponse, ApiOkResponse, ApiForbiddenResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiBadRequestResponse
 } from "@nestjs/swagger";
 
 @Controller("ideas/:ideaId")
-@ApiUseTags("Idea Comments")
+@ApiTags("Idea Comments")
 export class CommentIdeaController {
   private logger = new Logger("CommentIdeaController");
 
@@ -27,10 +27,10 @@ export class CommentIdeaController {
   }
 
   @Get("comments")
-  @ApiOperation({ title: "Find all comments from a specific idea." })
+  @ApiOperation({ summary: "Find all comments from a specific idea." })
   @ApiOkResponse({ description: "Found all comments from a specific idea." })
   @ApiNotFoundResponse({ description: "Specific idea was not found." })
-  @ApiImplicitQuery({ name: "page", required: false })
+  @ApiQuery({ name: "page", required: false })
   findAllIdeaComments(
     @Param("ideaId") ideaId: string,
     @Query("page") page: number
@@ -41,7 +41,7 @@ export class CommentIdeaController {
   @Post("comments")
   @UsePipes(ValidatorPipe)
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Create a comment in a specific idea." })
+  @ApiOperation({ summary: "Create a comment in a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiNotFoundResponse({ description: "The specific idea was not found." })
@@ -59,7 +59,7 @@ export class CommentIdeaController {
   @Patch("comments/:commentId")
   @UsePipes(ValidatorPipe)
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Update a specific comment in a specific idea." })
+  @ApiOperation({ summary: "Update a specific comment in a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiNotFoundResponse({ description: "The specific idea or the specific comment was not found." })
@@ -77,7 +77,7 @@ export class CommentIdeaController {
 
   @Delete("comments/:commentId")
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Delete a specific comment in a specific idea." })
+  @ApiOperation({ summary: "Delete a specific comment in a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiNotFoundResponse({ description: "The specific idea or the specific comment was not found." })

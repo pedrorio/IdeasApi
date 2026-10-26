@@ -24,7 +24,7 @@ export class CommentService {
   }
 
   async findComment(id: string) {
-    const comment = await this.commentRepository.findOne(id, { relations: ["author", "idea"] });
+    const comment = await this.commentRepository.findOne({ where: { id }, relations: ["author", "idea"] });
 
     if (!comment) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);

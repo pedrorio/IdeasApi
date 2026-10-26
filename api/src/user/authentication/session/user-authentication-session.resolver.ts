@@ -5,6 +5,8 @@ import { Query } from "@nestjs/common";
 import { UserAuthenticationRO } from "../user-authentication.ro";
 import { UserService } from "../../user.service";
 
+const FindMeQuery = (Query as () => MethodDecorator)();
+
 @Resolver("User")
 export class UserAuthenticationSessionResolver {
 
@@ -18,7 +20,7 @@ export class UserAuthenticationSessionResolver {
     return this.userAuthenticationSessionService.createSession(data);
   }
 
-  @Query()
+  @FindMeQuery
   findMe(
     @Context("user") { username }: UserAuthenticationRO
   ) {

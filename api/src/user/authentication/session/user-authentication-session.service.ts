@@ -21,7 +21,7 @@ export class UserAuthenticationSessionService {
 
   async createSession(data: UserDTO) {
     const { username, password } = data;
-    const user = await this.userRepository.findOne({ username });
+    const user = await this.userRepository.findOne({ where: { username } });
 
     if (!user) {
       throw new HttpException("Invalid credentials", HttpStatus.BAD_REQUEST);

@@ -10,7 +10,7 @@ import { ValidatorPipe } from "../../../shared/validator.pipe";
 import { UserDTO } from "../../user.dto";
 import { UserAuthenticationGuard } from "../user-authentication.guard";
 import {
-  ApiUseTags,
+  ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiOkResponse,
@@ -20,7 +20,7 @@ import {
 } from "@nestjs/swagger";
 
 @Controller("auth")
-@ApiUseTags("User Authentication Sessions")
+@ApiTags("User Authentication Sessions")
 export class UserAuthenticationSessionController {
   constructor(
     private userAuthenticationSessionService: UserAuthenticationSessionService,
@@ -30,7 +30,7 @@ export class UserAuthenticationSessionController {
 
   @Get("me")
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Find the current user." })
+  @ApiOperation({ summary: "Find the current user." })
   @ApiBearerAuth()
   @ApiOkResponse({ description: "Found current user." })
   @ApiNotFoundResponse({ description: "Current user not found." })
@@ -41,7 +41,7 @@ export class UserAuthenticationSessionController {
 
   @Post("login")
   @UsePipes(ValidatorPipe)
-  @ApiOperation({ title: "Create user session." })
+  @ApiOperation({ summary: "Create user session." })
   @ApiOkResponse({ description: "Created user session." })
   @ApiBadRequestResponse({description: "UserDTO validation failed or credentials are invalid."})
   createSession(@Body() data: UserDTO) {

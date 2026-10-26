@@ -3,12 +3,12 @@ import { Controller, Logger, Param, Post, UseGuards } from "@nestjs/common";
 import { IdeaVoteUpvoteService } from "./idea-vote-upvote.service";
 import { User } from "../../../user/user.decorator";
 import { UserAuthenticationGuard } from "../../../user/authentication/user-authentication.guard";
-import { ApiUseTags, ApiForbiddenResponse, ApiOperation, ApiBearerAuth, ApiBadRequestResponse, ApiCreatedResponse,
+import { ApiTags, ApiForbiddenResponse, ApiOperation, ApiBearerAuth, ApiBadRequestResponse, ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse} from "@nestjs/swagger";
 
 @Controller("ideas")
-@ApiUseTags("Upvote Idea")
+@ApiTags("Upvote Idea")
 export class IdeaVoteUpvoteController {
   private logger = new Logger("IdeaVoteUpvoteController");
 
@@ -23,7 +23,7 @@ export class IdeaVoteUpvoteController {
 
   @Post(":id/upvote")
   @UseGuards(UserAuthenticationGuard)
-  @ApiOperation({ title: "Upvote a specific idea." })
+  @ApiOperation({ summary: "Upvote a specific idea." })
   @ApiBearerAuth()
   @ApiForbiddenResponse({ description: "Invalid token or forbidden." })
   @ApiBadRequestResponse({ description: "Unable to cast vote." })

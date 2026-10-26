@@ -15,8 +15,8 @@ export class IdeaBookmarkService {
   ) {}
 
   async bookmarkIdea(id: string, userId: string) {
-    const user = await this.userRepository.findOne(userId);
-    const idea = await this.ideaRepository.findOne(id, { relations: ["author", "upvotes", "downvotes"] });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const idea = await this.ideaRepository.findOne({ where: { id }, relations: ["author", "upvotes", "downvotes"] });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);
@@ -37,8 +37,8 @@ export class IdeaBookmarkService {
   }
 
   async unbookmarkIdea(id: string, userId: string) {
-    const user = await this.userRepository.findOne(userId);
-    const idea = await this.ideaRepository.findOne(id, { relations: ["author", "upvotes", "downvotes"] });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const idea = await this.ideaRepository.findOne({ where: { id }, relations: ["author", "upvotes", "downvotes"] });
 
     if (!idea) {
       throw new HttpException("Not Found", HttpStatus.NOT_FOUND);

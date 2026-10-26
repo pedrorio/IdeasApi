@@ -1,34 +1,34 @@
 import { IdeaRO } from "../idea/idea.ro";
 import { UserEntity } from "./user.entity";
 import { CommentRO } from "../comment/comment.ro";
-import { ApiModelProperty } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class UserRO {
-  @ApiModelProperty()
+  @ApiProperty()
   id: string;
 
-  @ApiModelProperty()
+  @ApiProperty()
   created: Date;
 
-  @ApiModelProperty()
+  @ApiProperty()
   updated: Date;
 
-  @ApiModelProperty()
+  @ApiProperty()
   username: string;
 
-  @ApiModelProperty({
+  @ApiProperty({
     type: [IdeaRO],
     required: false
   })
   ideas?: IdeaRO[];
 
-  @ApiModelProperty({
+  @ApiProperty({
     type: [IdeaRO],
     required: false
   })
   bookmarks?: IdeaRO[];
 
-  @ApiModelProperty({
+  @ApiProperty({
     type: [CommentRO],
     required: false
   })

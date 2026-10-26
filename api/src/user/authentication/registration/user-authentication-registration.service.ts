@@ -20,7 +20,7 @@ export class UserAuthenticationRegistrationService {
 
   async createRegistration(data: UserDTO) {
     const { username } = data;
-    let user = await this.userRepository.findOne({ username });
+    let user = await this.userRepository.findOne({ where: { username } });
 
     if (user) {
       throw new HttpException("User already exists", HttpStatus.BAD_REQUEST);
@@ -33,7 +33,7 @@ export class UserAuthenticationRegistrationService {
   }
 
   async findRegistration(username: string) {
-    const user = await this.userRepository.findOne({ username });
+    const user = await this.userRepository.findOne({ where: { username } });
 
     if (!user) {
       throw new HttpException(

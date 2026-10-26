@@ -1,10 +1,9 @@
-# Spec Delta
+# toolchain Specification
 
 ## Purpose
-
 Defines the framework, compiler, linter, and container image tags used to build and run the API.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: NestJS 12 and TypeORM 0.3
 The API SHALL compile and the existing unit tests SHALL pass on NestJS 12 and TypeORM 0.3. HTTP and GraphQL behavior SHALL stay the same for the same input.
@@ -34,12 +33,12 @@ The lint script SHALL run ESLint, and the TSLint package SHALL be absent from th
 - **AND** `tslint` is not listed as a dependency
 
 ### Requirement: Version-pinned container images
-Postgres and Redis image tags in Compose SHALL name an explicit version and SHALL NOT be `latest`. The API and nginx Docker base images SHALL name an explicit version.
+The Postgres image tag in Compose SHALL name an explicit version and SHALL NOT be `latest`. The API and nginx Docker base images SHALL name an explicit version. Compose SHALL NOT define a Redis service, because the application does not connect to Redis.
 
 #### Scenario: Compose images
 - **WHEN** the Compose config is rendered
 - **THEN** the Postgres service image contains a version other than `latest`
-- **AND** the Redis service image contains a version other than `latest`
+- **AND** no Redis service is defined
 
 #### Scenario: Dockerfiles
 - **WHEN** `api/Dockerfile` and `nginx/Dockerfile` are read
