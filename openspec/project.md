@@ -24,7 +24,7 @@ The application code is in `api/`. Nothing in this baseline change is allowed to
 `AppModule` imports TypeORM, GraphQL, `IdeaModule`, `UserModule`, and `CommentModule`.
 
 - **Users** (`api/src/user`): `UserEntity` (`user` table) with username, password hash, ideas, bookmarks, comments. `GET /users` and `GET /users/:username` page with `take: 25` and `skip`.
-- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser`, `loginUser`, `findMe`. `UserAuthenticationGuard` checks `Authorization: Bearer`. A missing header or a bad signature is 403. An expired token or a token whose user row is gone is 401. The guard does not log the user or the bearer token.
+- **Auth** (`api/src/user/authentication`): `POST /auth/register`, `POST /auth/login`, `GET /auth/me`. GraphQL `registerUser` and `loginUser`. The schema declares `findMe`, but the resolver method is not registered as a GraphQL query, so the field resolves to null. `UserAuthenticationGuard` checks `Authorization: Bearer`. A missing header or a bad signature is 403. An expired token or a token whose user row is gone is 401. The guard does not log the user or the bearer token.
 - **Ideas** (`api/src/idea`): create, read, update, delete. Reads load `author` and `comments` and a numeric `score`. `GET /ideas` and `GET /ideas/newest` return `{ items, nextCursor }`, ordered by `created` descending then `id` descending. The default limit is 25 and the maximum is 100.
 - **Votes** (`api/src/idea/vote`): `PUT /ideas/:id/vote` with `{ value: 1 | -1 | 0 }` and GraphQL `setVote`. Storage is the `votes` table, one row per user and idea. The write response is `{ score, viewerVote }`. Idea reads do not include `viewerVote`.
 - **Bookmarks** (`api/src/idea/bookmark`): `POST /ideas/:id/bookmark` and `DELETE /ideas/:id/bookmark`. Storage is a `ManyToMany` on `UserEntity`.
@@ -81,6 +81,7 @@ Proposals only, in this order:
 3. `votes-table` — done in this tree: `votes(user_id, idea_id, value)`, `PUT /ideas/:id/vote`, GraphQL `setVote`, and cursor pages. Idea reads do not include `viewerVote`.
 4. `auth-guard` — done in this tree: `401` when the user row is missing or the token is expired, `403` for a missing header or a bad signature, and the guard does not log a bearer token.
 5. `e2e-tests` — done in this tree: `yarn test:e2e` runs the migration, vote, and auth checks on a throwaway database. The unit CI job does not start Postgres.
+6. `harden-auth-and-input` — proposed, not applied. Mass assignment on register and idea writes, JWT boot and `HS256`, GraphQL stack traces, registering `findMe` behind the guard, and id ownership checks.
 
 ## CI baseline
 
